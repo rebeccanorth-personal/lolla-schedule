@@ -90,17 +90,26 @@ body {
 
 /* ─── Header ──────────────────────────────────────────────────────────────── */
 .header {
-  flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
   padding: calc(var(--safe-top) + 12px) 16px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
-  background: rgba(8,1,15,0.8);
+  background: rgba(8,1,15,0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  position: relative;
-  z-index: 10;
+  z-index: 100;
+}
+
+.header-spacer {
+  flex-shrink: 0;
+  height: calc(var(--safe-top) + 66px);
 }
 
 .header-title {
@@ -1029,23 +1038,15 @@ body {
 .grid-wrapper {
   width: 100%;
   height: 100%;
-  position: relative;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
-.grid-scroll {
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-}
-.grid-scroll::-webkit-scrollbar { width: 3px; height: 3px; }
-.grid-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
-
+/* Stage name row — lives OUTSIDE the scroll container so it never scrolls away */
 .grid-header-row {
   display: flex;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  flex-shrink: 0;
   background: rgba(8,1,15,0.97);
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
@@ -1060,13 +1061,29 @@ body {
   line-height: 1.2;
 }
 
+/* Vertical scroll only — horizontal is handled by grid-xscroll inside */
+.grid-body-yscroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.grid-body-yscroll::-webkit-scrollbar { width: 3px; }
+.grid-body-yscroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+
+/* Horizontal scroll only — stage columns */
+.grid-xscroll {
+  flex: 1;
+  overflow-x: auto;
+}
+.grid-xscroll::-webkit-scrollbar { height: 3px; }
+.grid-xscroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+
+/* Time col — no sticky needed, it lives outside the x-scroll container */
 .grid-time-col {
   flex-shrink: 0;
-  position: sticky;
-  left: 0;
-  z-index: 5;
   background: rgba(8,1,15,0.97);
   border-right: 1px solid rgba(255,255,255,0.07);
+  position: relative;
 }
 
 .grid-time-label {

@@ -14,6 +14,7 @@ function AppInner() {
   return (
     <div className="app-shell">
       <Header />
+      <div className="header-spacer" />
       <DaySelector />
 
       <div className="content-area">
