@@ -1066,6 +1066,7 @@ body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  touch-action: pan-y;
 }
 .grid-body-yscroll::-webkit-scrollbar { width: 3px; }
 .grid-body-yscroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
@@ -1074,6 +1075,8 @@ body {
 .grid-xscroll {
   flex: 1;
   overflow-x: auto;
+  overflow-y: hidden;  /* prevents browser from making this a 2D scroll container */
+  touch-action: pan-x; /* iOS: pass vertical swipes to parent y-scroll container */
 }
 .grid-xscroll::-webkit-scrollbar { height: 3px; }
 .grid-xscroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
