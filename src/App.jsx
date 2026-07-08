@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { AppProvider, useApp } from './context/AppContext'
 import Header        from './components/Header'
 import DaySelector   from './components/DaySelector'
@@ -10,6 +11,10 @@ import ProfileModal  from './components/ProfileModal'
 
 function AppInner() {
   const { state } = useApp()
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', state.theme === 'light')
+  }, [state.theme])
 
   return (
     <div className="app-shell">

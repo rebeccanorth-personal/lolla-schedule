@@ -17,9 +17,14 @@ export default function CrewView() {
   if (events.length === 0) {
     return (
       <div className="schedule-list">
-        <button className="add-food-row" onClick={() => dispatch({ type: 'OPEN_FOOD_MODAL' })}>
-          🍕 Add food break
-        </button>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+          <button className="add-food-row" onClick={() => dispatch({ type: 'OPEN_FOOD_MODAL' })}>
+            🍕 Add food break
+          </button>
+          <button className="crew-btn" onClick={() => dispatch({ type: 'OPEN_PROFILE' })}>
+            👯 Squad
+          </button>
+        </div>
         <div className="schedule-empty">
           <div className="schedule-empty-icon">📋</div>
           <div className="schedule-empty-title">Nothing planned yet</div>
@@ -39,6 +44,13 @@ export default function CrewView() {
         </div>
         <button className="add-food-row" onClick={() => dispatch({ type: 'OPEN_FOOD_MODAL' })}>
           🍕 Add food break
+        </button>
+        <button
+          className="crew-btn"
+          style={{ marginLeft: 8 }}
+          onClick={() => dispatch({ type: 'OPEN_PROFILE' })}
+        >
+          👯 Squad
         </button>
       </div>
 

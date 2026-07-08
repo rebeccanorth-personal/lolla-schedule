@@ -20,6 +20,7 @@ const INITIAL_STATE = {
   activeTab: 'schedule',
   schedules: { u1: {}, u2: {}, u3: {}, u4: {} },
   foodBreaks: [],
+  theme: 'dark',
   attendeeSheet: null,   // performerId when open
   foodModal: false,
   profileModalOpen: false,
@@ -54,6 +55,7 @@ function saveState(state) {
     localStorage.setItem('loonipalooza-state', JSON.stringify(toSave))
   } catch {}
 }
+
 
 function reducer(state, action) {
   switch (action.type) {
@@ -106,6 +108,9 @@ function reducer(state, action) {
     case 'REMOVE_FOOD_BREAK': {
       return { ...state, foodBreaks: state.foodBreaks.filter(f => f.id !== action.id) }
     }
+
+    case 'TOGGLE_THEME':
+      return { ...state, theme: state.theme === 'dark' ? 'light' : 'dark' }
 
     case 'OPEN_PROFILE':
       return { ...state, profileModalOpen: true }

@@ -92,7 +92,7 @@ export default function LineupTimeline() {
                       top: (h - START_HOUR) * HOUR_PX,
                       left: 0, right: 0,
                       height: 1,
-                      background: 'rgba(255,255,255,0.06)',
+                      background: 'var(--grid-line)',
                     }}
                   />
                 ))}
@@ -121,7 +121,7 @@ export default function LineupTimeline() {
                         color: '#FF9F1C',
                         fontWeight: 600,
                         letterSpacing: '0.06em',
-                        background: 'rgba(8,1,15,0.7)',
+                        background: 'var(--food-pill-bg)',
                         padding: '2px 8px',
                         borderRadius: 6,
                       }}>
@@ -142,7 +142,7 @@ export default function LineupTimeline() {
                       width: STAGE_W,
                       height: TOTAL_H,
                       position: 'relative',
-                      borderRight: '1px solid rgba(255,255,255,0.05)',
+                      borderRight: '1px solid var(--border)',
                       zIndex: 2,
                       scrollSnapAlign: 'start',
                     }}
@@ -163,10 +163,8 @@ export default function LineupTimeline() {
                             top,
                             height,
                             '--stage-color': stage.color,
-                            background: isPlanned
-                              ? `linear-gradient(160deg, ${stage.color}dd, ${stage.color}88)`
-                              : `linear-gradient(160deg, ${stage.color}28, ${stage.color}14)`,
-                            borderColor: isPlanned ? `${stage.color}88` : `${stage.color}30`,
+                            background: isPlanned ? `${stage.color}cc` : `${stage.color}18`,
+                            borderColor: isPlanned ? `${stage.color}99` : `${stage.color}30`,
                           }}
                           onClick={() => openSheet(performer.id)}
                         >

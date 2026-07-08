@@ -2,6 +2,7 @@ import { useApp } from '../context/AppContext'
 
 export default function Header() {
   const { state, dispatch } = useApp()
+  const isLight = state.theme === 'light'
 
   return (
     <header className="header">
@@ -12,10 +13,10 @@ export default function Header() {
       <div className="header-right">
         <button
           className="crew-btn"
-          onClick={() => dispatch({ type: 'OPEN_PROFILE' })}
-          title="Edit squad names"
+          onClick={() => dispatch({ type: 'TOGGLE_THEME' })}
+          title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
         >
-          👯 Squad
+          {isLight ? '🌙 Dark' : '☀️ Light'}
         </button>
       </div>
     </header>
