@@ -198,10 +198,8 @@ body {
   position: relative;
 }
 .day-btn.active {
-  background: var(--pink);
   border-color: transparent;
   color: white;
-  box-shadow: 0 0 14px rgba(255,0,110,0.35);
 }
 .day-btn:not(.active):active {
   background: var(--surface);
@@ -1787,3 +1785,12 @@ html.light .half-line  { background: rgba(0,0,0,0.03); }
 
 /* Scrollbar thumbs */
 html.light ::-webkit-scrollbar-thumb { background: rgba(131,56,236,0.2); }
+
+/* Grid block text in light mode */
+html.light .grid-block-name { color: rgba(26,5,51,0.9); }
+html.light .grid-block-planned .grid-block-name { color: #1a0533; }
+html.light .grid-block-time { color: rgba(26,5,51,0.6); }
+html.light .grid-all-badge {
+  color: #1a0533;
+  background: rgba(26,5,51,0.12);
+}

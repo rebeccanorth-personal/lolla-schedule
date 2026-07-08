@@ -8,23 +8,38 @@ const DAY_DATES = {
   Sunday:   'Aug 2',
 }
 
+const DAY_COLORS = {
+  Thursday: '#FF006E',  // pink
+  Friday:   '#8338EC',  // purple
+  Saturday: '#00C2FF',  // cyan
+  Sunday:   '#FFBE0B',  // yellow
+}
+
 export default function DaySelector() {
   const { state, dispatch } = useApp()
 
   return (
     <div className="day-selector">
-      {DAYS.map(day => (
-        <button
-          key={day}
-          className={`day-btn ${state.activeDay === day ? 'active' : ''}`}
-          onClick={() => dispatch({ type: 'SET_DAY', day })}
-        >
-          {day.slice(0, 3).toUpperCase()}
-          <span style={{ fontSize: 9, display: 'block', opacity: 0.7, marginTop: 1 }}>
-            {DAY_DATES[day]}
-          </span>
-        </button>
-      ))}
+      {DAYS.map(day => {
+        const isActive = state.activeDay === day
+        const color = DAY_COLORS[day]
+        return (
+          <button
+            key={day}
+            className={`day-btn ${isActive ? 'active' : ''}`}
+            style={isActive ? {
+              background: color,
+              boxShadow: `0 0 14px ${color}55`,
+            } : {}}
+            onClick={() => dispatch({ type: 'SET_DAY', day })}
+          >
+            {day.slice(0, 3).toUpperCase()}
+            <span style={{ fontSize: 9, display: 'block', opacity: 0.75, marginTop: 1 }}>
+              {DAY_DATES[day]}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }
