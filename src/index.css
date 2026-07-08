@@ -1077,6 +1077,7 @@ body {
   overflow-x: auto;
   overflow-y: hidden;  /* prevents browser from making this a 2D scroll container */
   touch-action: pan-x; /* iOS: pass vertical swipes to parent y-scroll container */
+  scroll-snap-type: x mandatory;
 }
 .grid-xscroll::-webkit-scrollbar { height: 3px; }
 .grid-xscroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }

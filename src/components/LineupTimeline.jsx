@@ -144,6 +144,7 @@ export default function LineupTimeline() {
                       position: 'relative',
                       borderRight: '1px solid rgba(255,255,255,0.05)',
                       zIndex: 2,
+                      scrollSnapAlign: 'start',
                     }}
                   >
                     {stagePerformers.map(performer => {
