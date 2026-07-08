@@ -1,116 +1,79 @@
 import { useApp } from '../context/AppContext'
-import { getStageById, formatTime, overlaps } from '../data/lineup'
+import { DAYS, getStageById, formatTime } from '../data/lineup'
 
-export default function MySchedule() {
-  const { state, dispatch, getUserScheduleForDay, getConflictsFor } = useApp()
-  const items = getUserScheduleForDay(state.currentUserId, state.activeDay)
+export default function GroupSchedule() {
+  const { state, dispatch, getGroupScheduleForDay, getAttendees } = useApp()
+  const { users, activeDay } = state
 
-  if (items.length === 0) {
+  const shows = getGroupScheduleForDay(activeDay)
+
+  function openSheet(performerId) {
+    dispatch({ type: 'OPEN_ATTENDEE_SHEET', performerId })
+  }
+
+  if (shows.length === 0) {
     return (
       <div className="schedule-list">
         <div className="schedule-empty">
           <div className="schedule-empty-icon">🎪</div>
-          <div className="schedule-empty-title">No picks yet</div>
+          <div className="schedule-empty-title">No shows planned</div>
           <div className="schedule-empty-text">
-            Tap the <strong>LINEUP</strong> tab and tap any act to add it to your schedule.
+            Go to <strong>Lineup</strong>, tap any show, and pick who's going.
           </div>
         </div>
       </div>
     )
-  }
-
-  // Group conflicting items together
-  const seen = new Set()
-  const groups = []
-
-  items.forEach(item => {
-    if (seen.has(item.performer.id)) return
-    const conflicts = items.filter(
-      other =>
-        other.performer.id !== item.performer.id &&
-        overlaps(item.performer, other.performer)
-    )
-    if (conflicts.length > 0) {
-      const group = [item, ...conflicts].sort((a, b) => (a.priority || 1) - (b.priority || 1))
-      group.forEach(g => seen.add(g.performer.id))
-      groups.push({ type: 'conflict', items: group })
-    } else {
-      seen.add(item.performer.id)
-      groups.push({ type: 'single', item })
-    }
-  })
-
-  function removePerformer(performer) {
-    dispatch({ type: 'TOGGLE_PERFORMER', performer })
   }
 
   return (
     <div className="schedule-list">
-      {groups.map((group, gi) => {
-        if (group.type === 'single') {
-          return <ScheduleItem key={gi} item={group.item} onRemove={removePerformer} />
-        }
-        return (
-          <div key={gi} className="conflict-group">
-            <div className="conflict-group-header">
-              ⚡ Overlap — {group.items.length} acts at once
-            </div>
-            {group.items.map((item, ii) => (
-              <ScheduleItem key={ii} item={item} onRemove={removePerformer} inGroup />
-            ))}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function ScheduleItem({ item, onRemove, inGroup = false }) {
-  const { performer, priority } = item
-  const stage = getStageById(performer.stage)
-
-  return (
-    <div className="schedule-item-inner" style={{ borderRadius: inGroup ? 0 : 12, borderLeft: `4px solid ${stage.color}` }}>
-      <div className="schedule-item-body">
-        <div className="schedule-item-info">
-          <div className="schedule-item-name">{performer.name}</div>
-          <div className="schedule-item-meta">
-            <span
-              className="stage-pill"
-              style={{
-                background: `${stage.color}22`,
-                color: stage.color,
-                border: `1px solid ${stage.color}44`,
-              }}
-            >
-              {stage.shortName}
-            </span>
-            <span>{formatTime(performer.start)} – {formatTime(performer.end)}</span>
-            <span style={{ color: 'var(--muted)' }}>{performer.genre}</span>
-          </div>
-        </div>
-
-        {priority && (
-          <div
-            className="schedule-item-priority"
-            style={{
-              background: priority === 1 ? 'rgba(255,190,11,0.15)' : 'rgba(255,255,255,0.05)',
-              color: priority === 1 ? 'var(--yellow)' : 'var(--muted)',
-              border: `1px solid ${priority === 1 ? 'rgba(255,190,11,0.3)' : 'rgba(255,255,255,0.1)'}`,
-            }}
-          >
-            {priority === 1 ? '★' : '☆'}
-          </div>
-        )}
+      <div style={{ fontSize: 11, letterSpacing: '0.12em', color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 4 }}>
+        {activeDay} · {shows.length} show{shows.length !== 1 ? 's' : ''} planned
       </div>
 
-      <button
-        className="schedule-item-remove"
-        onClick={() => onRemove(performer)}
-        aria-label="Remove"
-      >
-        ✕
-      </button>
+      {shows.map(performer => {
+        const stage = getStageById(performer.stage)
+        const attendeeIds = getAttendees(performer.id)
+        const attendees = users.filter(u => attendeeIds.includes(u.id))
+
+        return (
+          <button
+            key={performer.id}
+            className="group-show-item"
+            style={{ borderLeft: `4px solid ${stage.color}` }}
+            onClick={() => openSheet(performer.id)}
+          >
+            <div className="group-show-time">
+              {formatTime(performer.start)}
+              <span style={{ color: 'var(--muted)', fontSize: 10 }}>–{formatTime(performer.end)}</span>
+            </div>
+
+            <div className="group-show-info">
+              <div className="group-show-name">
+                {performer.name}
+                {performer.headliner && <span className="headliner-star">★</span>}
+              </div>
+              <div className="group-show-meta">
+                <span style={{ color: stage.color }}>{stage.shortName}</span>
+                <span style={{ color: 'var(--muted)' }}>· {performer.genre}</span>
+              </div>
+            </div>
+
+            <div className="group-show-avatars">
+              {attendees.map(u => (
+                <span
+                  key={u.id}
+                  className="attendee-dot"
+                  style={{ background: u.color }}
+                  title={u.name}
+                >
+                  {u.name[0]}
+                </span>
+              ))}
+            </div>
+          </button>
+        )
+      })}
     </div>
   )
 }

@@ -1,9 +1,8 @@
 import { useApp } from '../context/AppContext'
 
 const TABS = [
-  { id: 'lineup',   icon: '🎪', label: 'LINEUP' },
-  { id: 'schedule', icon: '⭐', label: 'MY PICKS' },
-  { id: 'friends',  icon: '👥', label: 'CREW' },
+  { id: 'schedule', icon: '🎪', label: 'LINEUP' },
+  { id: 'friends',  icon: '👯', label: 'OUR SCHEDULE' },
 ]
 
 export default function Navigation() {

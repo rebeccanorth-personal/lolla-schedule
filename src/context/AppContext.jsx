@@ -3,35 +3,44 @@ import { PERFORMERS, overlaps, getPerformerById } from '../data/lineup'
 
 const AppContext = createContext(null)
 
-const DEFAULT_USERS = [
-  { id: 'u1', name: 'Me',       color: '#FF006E', emoji: '🎵' },
-  { id: 'u2', name: 'Friend 1', color: '#8338EC', emoji: '🎸' },
-  { id: 'u3', name: 'Friend 2', color: '#00C2FF', emoji: '🎤' },
-  { id: 'u4', name: 'Friend 3', color: '#FFBE0B', emoji: '🥁' },
+export const DEFAULT_USERS = [
+  { id: 'u2', name: 'Ilana',   color: '#8338EC', emoji: '⚡' },
+  { id: 'u4', name: 'Jamie',   color: '#FFBE0B', emoji: '🔥' },
+  { id: 'u3', name: 'Kara',    color: '#00C2FF', emoji: '🎵' },
+  { id: 'u1', name: 'Rebecca', color: '#FF006E', emoji: '💃' },
 ]
 
+const ALL_USER_IDS = DEFAULT_USERS.map(u => u.id)
+
+// schedules[userId][performerId] = true
+// foodBreaks: [{ id, day, start, end, label }]
 const INITIAL_STATE = {
   users: DEFAULT_USERS,
-  currentUserId: 'u1',
   activeDay: 'Thursday',
-  activeTab: 'lineup',
-  // schedules[userId][performerId] = { priority: 1|2 }
+  activeTab: 'schedule',
   schedules: { u1: {}, u2: {}, u3: {}, u4: {} },
-  pendingConflict: null, // { newPerformer, conflicts: Performer[] }
-  shareModalOpen: false,
+  foodBreaks: [],
+  attendeeSheet: null,   // performerId when open
+  foodModal: false,
   profileModalOpen: false,
 }
 
 function loadState() {
   try {
-    const raw = localStorage.getItem('lolla-2026-state')
+    const raw = localStorage.getItem('loonipalooza-state')
     if (!raw) return INITIAL_STATE
     const saved = JSON.parse(raw)
+    // Always use default emoji/color; only restore saved names
+    const users = DEFAULT_USERS.map(def => {
+      const savedUser = (saved.users || []).find(u => u.id === def.id)
+      return { ...def, name: savedUser?.name ?? def.name }
+    })
     return {
       ...INITIAL_STATE,
       ...saved,
-      pendingConflict: null,
-      shareModalOpen: false,
+      users,
+      attendeeSheet: null,
+      foodModal: false,
       profileModalOpen: false,
     }
   } catch {
@@ -41,19 +50,16 @@ function loadState() {
 
 function saveState(state) {
   try {
-    const { pendingConflict, shareModalOpen, profileModalOpen, ...toSave } = state
-    localStorage.setItem('lolla-2026-state', JSON.stringify(toSave))
+    const { attendeeSheet, foodModal, profileModalOpen, ...toSave } = state
+    localStorage.setItem('loonipalooza-state', JSON.stringify(toSave))
   } catch {}
 }
 
 function reducer(state, action) {
   switch (action.type) {
 
-    case 'SET_USER':
-      return { ...state, currentUserId: action.userId }
-
     case 'SET_DAY':
-      return { ...state, activeDay: action.day, activeTab: 'lineup' }
+      return { ...state, activeDay: action.day, activeTab: 'schedule' }
 
     case 'SET_TAB':
       return { ...state, activeTab: action.tab }
@@ -65,91 +71,47 @@ function reducer(state, action) {
       return { ...state, users }
     }
 
-    case 'TOGGLE_PERFORMER': {
-      const { performer } = action
-      const uid = state.currentUserId
-      const userSchedule = state.schedules[uid] || {}
+    case 'OPEN_ATTENDEE_SHEET':
+      return { ...state, attendeeSheet: action.performerId }
 
-      // Remove if already selected
-      if (userSchedule[performer.id]) {
-        const next = { ...userSchedule }
-        delete next[performer.id]
-        return {
-          ...state,
-          schedules: { ...state.schedules, [uid]: next },
+    case 'CLOSE_ATTENDEE_SHEET':
+      return { ...state, attendeeSheet: null }
+
+    case 'SET_SHOW_ATTENDEES': {
+      const { performerId, attendeeIds } = action
+      const nextSchedules = { ...state.schedules }
+      state.users.forEach(u => {
+        const current = { ...nextSchedules[u.id] }
+        if (attendeeIds.includes(u.id)) {
+          current[performerId] = true
+        } else {
+          delete current[performerId]
         }
-      }
-
-      // Check for conflicts with existing picks on same day
-      const conflicts = Object.keys(userSchedule)
-        .map(id => getPerformerById(id))
-        .filter(p => p && p.day === performer.day && overlaps(performer, p))
-
-      if (conflicts.length > 0) {
-        return { ...state, pendingConflict: { newPerformer: performer, conflicts } }
-      }
-
-      // No conflict — add with priority 1
-      return {
-        ...state,
-        schedules: {
-          ...state.schedules,
-          [uid]: { ...userSchedule, [performer.id]: { priority: 1 } },
-        },
-      }
-    }
-
-    case 'RESOLVE_CONFLICT': {
-      // action: { keepNew, priority } where priority = id of the one to mark #1
-      const { keepNew, priorityId } = action
-      const { newPerformer, conflicts } = state.pendingConflict
-      const uid = state.currentUserId
-      const userSchedule = { ...state.schedules[uid] }
-
-      if (!keepNew) {
-        // discard new, keep existing as-is
-        return { ...state, pendingConflict: null }
-      }
-
-      // Add new performer
-      userSchedule[newPerformer.id] = { priority: priorityId === newPerformer.id ? 1 : 2 }
-
-      // Update existing conflicting acts' priorities
-      conflicts.forEach(c => {
-        if (userSchedule[c.id]) {
-          userSchedule[c.id] = { priority: priorityId === c.id ? 1 : 2 }
-        }
+        nextSchedules[u.id] = current
       })
-
-      return {
-        ...state,
-        pendingConflict: null,
-        schedules: { ...state.schedules, [uid]: userSchedule },
-      }
+      return { ...state, schedules: nextSchedules, attendeeSheet: null }
     }
 
-    case 'CLEAR_CONFLICT':
-      return { ...state, pendingConflict: null }
+    case 'OPEN_FOOD_MODAL':
+      return { ...state, foodModal: true }
 
-    case 'OPEN_SHARE':
-      return { ...state, shareModalOpen: true }
+    case 'CLOSE_FOOD_MODAL':
+      return { ...state, foodModal: false }
 
-    case 'CLOSE_SHARE':
-      return { ...state, shareModalOpen: false }
+    case 'ADD_FOOD_BREAK': {
+      const fb = { ...action.foodBreak, id: `food-${Date.now()}` }
+      return { ...state, foodBreaks: [...state.foodBreaks, fb], foodModal: false }
+    }
+
+    case 'REMOVE_FOOD_BREAK': {
+      return { ...state, foodBreaks: state.foodBreaks.filter(f => f.id !== action.id) }
+    }
 
     case 'OPEN_PROFILE':
       return { ...state, profileModalOpen: true }
 
     case 'CLOSE_PROFILE':
       return { ...state, profileModalOpen: false }
-
-    case 'IMPORT_SCHEDULE': {
-      // action: { userId, schedule } — schedule is { [performerId]: { priority } }
-      return {
-        ...state,
-        schedules: { ...state.schedules, [action.userId]: action.schedule },
-      }
-    }
 
     default:
       return state
@@ -163,47 +125,68 @@ export function AppProvider({ children }) {
     saveState(state)
   }, [state])
 
-  // Helpers derived from state
-  const currentUser   = state.users.find(u => u.id === state.currentUserId)
   const dayPerformers = PERFORMERS.filter(p => p.day === state.activeDay)
-  const userSchedule  = state.schedules[state.currentUserId] || {}
 
-  function isSelected(performerId) {
-    return !!userSchedule[performerId]
+  function getAttendees(performerId) {
+    return state.users
+      .filter(u => state.schedules[u.id]?.[performerId])
+      .map(u => u.id)
   }
 
-  function getPriority(performerId) {
-    return userSchedule[performerId]?.priority ?? null
+  function getFoodBreaksForDay(day) {
+    return state.foodBreaks
+      .filter(f => f.day === day)
+      .sort((a, b) => a.start.localeCompare(b.start))
   }
 
-  function getConflictsFor(performerId) {
-    const perf = getPerformerById(performerId)
-    if (!perf) return []
-    return Object.keys(userSchedule)
-      .filter(id => id !== performerId)
-      .map(id => getPerformerById(id))
-      .filter(p => p && p.day === perf.day && overlaps(perf, p))
+  // For the crew view: everyone's schedule + food breaks, sorted by time
+  function getCrewScheduleForDay(day) {
+    const events = []
+
+    // Shows — collect all shows any person is attending
+    const seen = new Set()
+    state.users.forEach(u => {
+      Object.keys(state.schedules[u.id] || {}).forEach(pid => {
+        if (!seen.has(pid)) {
+          const p = getPerformerById(pid)
+          if (p && p.day === day) {
+            seen.add(pid)
+            events.push({ type: 'show', performer: p })
+          }
+        }
+      })
+    })
+
+    // Food breaks
+    getFoodBreaksForDay(day).forEach(fb => {
+      events.push({ type: 'food', foodBreak: fb })
+    })
+
+    return events.sort((a, b) => {
+      const aTime = a.type === 'show' ? a.performer.start : a.foodBreak.start
+      const bTime = b.type === 'show' ? b.performer.start : b.foodBreak.start
+      return aTime.localeCompare(bTime)
+    })
   }
 
-  function getUserScheduleForDay(userId, day) {
-    const schedule = state.schedules[userId] || {}
-    return Object.entries(schedule)
-      .map(([id, meta]) => ({ performer: getPerformerById(id), ...meta }))
-      .filter(e => e.performer && e.performer.day === day)
-      .sort((a, b) => a.performer.start.localeCompare(b.performer.start))
+  function hasConflict(userId, performer) {
+    const userSchedule = state.schedules[userId] || {}
+    return Object.keys(userSchedule).some(pid => {
+      const p = getPerformerById(pid)
+      return p && p.day === performer.day && p.id !== performer.id && overlaps(performer, p)
+    })
   }
 
   return (
     <AppContext.Provider value={{
       state,
       dispatch,
-      currentUser,
       dayPerformers,
-      userSchedule,
-      isSelected,
-      getPriority,
-      getConflictsFor,
-      getUserScheduleForDay,
+      getAttendees,
+      getFoodBreaksForDay,
+      getCrewScheduleForDay,
+      hasConflict,
+      allUserIds: ALL_USER_IDS,
     }}>
       {children}
     </AppContext.Provider>

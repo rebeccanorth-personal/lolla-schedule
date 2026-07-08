@@ -20,34 +20,32 @@ export default function ProfileModal() {
     setEditingId(null)
   }
 
-  function selectUser(userId) {
-    dispatch({ type: 'SET_USER', userId })
+  function close() {
     dispatch({ type: 'CLOSE_PROFILE' })
   }
 
   return (
-    <div className="modal-overlay" onClick={() => dispatch({ type: 'CLOSE_PROFILE' })}>
+    <div className="modal-overlay" onClick={close}>
       <div className="modal-sheet" onClick={e => e.stopPropagation()}>
         <div className="modal-handle" />
-        <div className="modal-title">Who are you?</div>
+        <div className="modal-title">Your Crew</div>
         <div className="modal-subtitle">
-          Each person builds their own schedule. Tap to switch profiles.
+          Rename anyone below — your names show up on every show you're added to.
         </div>
 
         <div className="profile-list">
           {state.users.map(user => {
-            const isActive = user.id === state.currentUserId
             const isEditing = editingId === user.id
             const pickCount = Object.keys(state.schedules[user.id] || {}).length
 
             return (
-              <div key={user.id} className="profile-item" onClick={() => !isEditing && selectUser(user.id)}>
+              <div key={user.id} className="profile-item">
                 <div
                   className="user-avatar"
                   style={{
                     background: `${user.color}22`,
-                    borderColor: isActive ? user.color : 'transparent',
-                    boxShadow: isActive ? `0 0 12px ${user.color}44` : 'none',
+                    borderColor: user.color,
+                    boxShadow: `0 0 10px ${user.color}33`,
                   }}
                 >
                   {user.emoji}
@@ -61,19 +59,15 @@ export default function ProfileModal() {
                       onChange={e => setEditName(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') saveEdit() }}
                       autoFocus
-                      onClick={e => e.stopPropagation()}
                       maxLength={20}
                     />
                   ) : (
                     <>
-                      <div
-                        className="profile-item-name"
-                        style={{ color: isActive ? user.color : 'var(--text)' }}
-                      >
+                      <div className="profile-item-name" style={{ color: user.color }}>
                         {user.name}
                       </div>
                       <div className="profile-item-count">
-                        {pickCount} total picks
+                        {pickCount} show{pickCount !== 1 ? 's' : ''} planned
                       </div>
                     </>
                   )}
@@ -82,22 +76,15 @@ export default function ProfileModal() {
                 {isEditing ? (
                   <button
                     className="profile-edit-btn"
-                    onClick={e => { e.stopPropagation(); saveEdit() }}
+                    onClick={saveEdit}
                     style={{ color: 'var(--teal)', borderColor: 'var(--teal)' }}
                   >
                     Save
                   </button>
                 ) : (
-                  <button
-                    className="profile-edit-btn"
-                    onClick={e => { e.stopPropagation(); startEdit(user) }}
-                  >
+                  <button className="profile-edit-btn" onClick={() => startEdit(user)}>
                     Rename
                   </button>
-                )}
-
-                {isActive && !isEditing && (
-                  <div className="profile-active-indicator">✓</div>
                 )}
               </div>
             )
@@ -105,12 +92,7 @@ export default function ProfileModal() {
         </div>
 
         <div style={{ padding: '8px 20px 4px' }}>
-          <button
-            className="btn btn-ghost"
-            onClick={() => dispatch({ type: 'CLOSE_PROFILE' })}
-          >
-            Done
-          </button>
+          <button className="btn btn-ghost" onClick={close}>Done</button>
         </div>
       </div>
     </div>

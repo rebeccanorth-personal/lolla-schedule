@@ -1,140 +1,110 @@
 import { useApp } from '../context/AppContext'
 import { getStageById, formatTime } from '../data/lineup'
 
-export default function FriendsView() {
-  const { state, getUserScheduleForDay } = useApp()
+export default function CrewView() {
+  const { state, dispatch, getCrewScheduleForDay, getAttendees } = useApp()
+  const { users, activeDay } = state
 
-  // Build a set of performer IDs that ALL users share on this day
-  const allSchedules = state.users.map(u => ({
-    user: u,
-    items: getUserScheduleForDay(u.id, state.activeDay),
-  }))
+  const events = getCrewScheduleForDay(activeDay)
 
-  const sharedIds = (() => {
-    const counts = {}
-    allSchedules.forEach(({ items }) => {
-      items.forEach(({ performer }) => {
-        counts[performer.id] = (counts[performer.id] || 0) + 1
-      })
-    })
-    return new Set(Object.keys(counts).filter(id => counts[id] > 1))
-  })()
+  function openSheet(performerId) {
+    dispatch({ type: 'OPEN_ATTENDEE_SHEET', performerId })
+  }
+  function removeFood(id) {
+    dispatch({ type: 'REMOVE_FOOD_BREAK', id })
+  }
+
+  if (events.length === 0) {
+    return (
+      <div className="schedule-list">
+        <button className="add-food-row" onClick={() => dispatch({ type: 'OPEN_FOOD_MODAL' })}>
+          🍕 Add food break
+        </button>
+        <div className="schedule-empty">
+          <div className="schedule-empty-icon">📋</div>
+          <div className="schedule-empty-title">Nothing planned yet</div>
+          <div className="schedule-empty-text">
+            Go to <strong>Schedule</strong> and tap any show to add it. Your crew plan shows up here — screenshot this view to remember it at the festival.
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="friends-view">
-      <div
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 13,
-          letterSpacing: '0.12em',
-          color: 'var(--muted)',
-          marginBottom: 14,
-          textTransform: 'uppercase',
-        }}
-      >
-        {state.activeDay} · All Schedules
+    <div className="schedule-list" style={{ paddingBottom: 32 }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ fontSize: 11, letterSpacing: '0.12em', color: 'var(--muted)', textTransform: 'uppercase', flex: 1 }}>
+          {activeDay} · Our Schedule
+        </div>
+        <button className="add-food-row" onClick={() => dispatch({ type: 'OPEN_FOOD_MODAL' })}>
+          🍕 Add food break
+        </button>
       </div>
 
-      <div className="friends-grid">
-        {allSchedules.map(({ user, items }) => (
-          <FriendCard
-            key={user.id}
-            user={user}
-            items={items}
-            sharedIds={sharedIds}
-            isCurrentUser={user.id === state.currentUserId}
-          />
-        ))}
-      </div>
+      {events.map((event, i) => {
+        if (event.type === 'food') {
+          const fb = event.foodBreak
+          return (
+            <div key={fb.id} className="crew-food-item">
+              <div className="crew-food-icon">🍕</div>
+              <div className="crew-food-info">
+                <div className="crew-food-label">{fb.label}</div>
+                <div className="crew-food-time">{formatTime(fb.start)} – {formatTime(fb.end)}</div>
+              </div>
+              <button className="crew-food-remove" onClick={() => removeFood(fb.id)}>✕</button>
+            </div>
+          )
+        }
 
-      {sharedIds.size > 0 && (
-        <div
-          style={{
-            marginTop: 16,
-            padding: '10px 14px',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 12,
-            fontSize: 12,
-            color: 'var(--muted)',
-            lineHeight: 1.6,
-          }}
-        >
-          <span style={{ color: 'var(--text)', fontWeight: 600 }}>
-            🤝 {sharedIds.size} shared {sharedIds.size === 1 ? 'act' : 'acts'}
-          </span>
-          {' '}that multiple people want to see are highlighted.
-        </div>
-      )}
-    </div>
-  )
-}
+        const { performer } = event
+        const stage = getStageById(performer.stage)
+        const attendeeIds = getAttendees(performer.id)
+        const attendees = users.filter(u => attendeeIds.includes(u.id))
+        const allGoing = attendees.length === users.length
+        const isSplit = !allGoing && attendees.length > 0
 
-function FriendCard({ user, items, sharedIds, isCurrentUser }) {
-  return (
-    <div
-      className="friend-card"
-      style={{
-        borderColor: isCurrentUser
-          ? `${user.color}44`
-          : 'var(--border)',
-        boxShadow: isCurrentUser
-          ? `0 0 16px ${user.color}18`
-          : 'none',
-      }}
-    >
-      <div className="friend-card-header">
-        <div
-          className="user-avatar-sm"
-          style={{
-            background: `${user.color}22`,
-            border: `1px solid ${user.color}`,
-          }}
-        >
-          {user.emoji}
-        </div>
-        <div
-          className="friend-card-name"
-          style={{ color: isCurrentUser ? user.color : 'var(--text)' }}
-        >
-          {isCurrentUser ? 'ME' : user.name.toUpperCase()}
-        </div>
-        <div className="friend-card-count">{items.length}</div>
-      </div>
+        return (
+          <button
+            key={performer.id}
+            className="crew-event-item"
+            style={{ borderLeft: `4px solid ${stage.color}` }}
+            onClick={() => openSheet(performer.id)}
+          >
+            <div className="crew-event-time">
+              <span className="crew-time-start">{formatTime(performer.start)}</span>
+              <span className="crew-time-end">{formatTime(performer.end)}</span>
+            </div>
 
-      <div className="friend-card-body">
-        {items.length === 0 ? (
-          <div className="friend-empty">No picks</div>
-        ) : (
-          items.map(({ performer, priority }) => {
-            const stage = getStageById(performer.stage)
-            const shared = sharedIds.has(performer.id)
-            return (
-              <div
-                key={performer.id}
-                className="friend-act"
-                style={{
-                  background: `${stage.color}${shared ? '44' : '28'}`,
-                  border: shared ? `1px solid ${stage.color}60` : 'none',
-                }}
-              >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="friend-act-name">{performer.name}</div>
-                  <div className="friend-act-time">
-                    {formatTime(performer.start)} · {stage.shortName}
+            <div className="crew-event-info">
+              <div className="crew-event-name">
+                {performer.name}
+                {performer.headliner && <span className="headliner-star">★</span>}
+              </div>
+              <div className="crew-event-stage" style={{ color: stage.color }}>
+                {stage.shortName}
+              </div>
+            </div>
+
+            <div className="crew-event-who">
+              {allGoing ? (
+                <span className="crew-all-tag">Everyone</span>
+              ) : isSplit ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+                  <span className="split-badge">SPLIT</span>
+                  <div style={{ display: 'flex', gap: 2 }}>
+                    {attendees.map(u => (
+                      <span key={u.id} className="attendee-dot" style={{ background: u.color, width: 18, height: 18, fontSize: 9 }}>
+                        {u.name[0]}
+                      </span>
+                    ))}
                   </div>
                 </div>
-                {priority === 1 && (
-                  <span style={{ fontSize: 10, color: 'var(--yellow)', flexShrink: 0 }}>★</span>
-                )}
-                {shared && (
-                  <span className="shared-badge">shared</span>
-                )}
-              </div>
-            )
-          })
-        )}
-      </div>
+              ) : null}
+            </div>
+          </button>
+        )
+      })}
     </div>
   )
 }
