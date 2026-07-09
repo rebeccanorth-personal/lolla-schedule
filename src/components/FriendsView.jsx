@@ -155,12 +155,12 @@ export default function CrewView() {
 
   return (
     <div className="schedule-list" style={{ paddingBottom: 32 }}>
-      <div style={{ fontSize: 11, letterSpacing: '0.12em', color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 10, display: 'flex', alignItems: 'center' }}>
-        <span style={{ flex: 1 }}>{activeDay} · Our Schedule</span>
-        <button className="add-food-row" onClick={() => dispatch({ type: 'OPEN_FOOD_MODAL' })}>
-          🍕 Add food break
-        </button>
+      <div style={{ fontSize: 11, letterSpacing: '0.12em', color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 8 }}>
+        {activeDay} · Our Schedule
       </div>
+      <button className="add-food-row" style={{ marginBottom: 12 }} onClick={() => dispatch({ type: 'OPEN_FOOD_MODAL' })}>
+        🍕 Add food break
+      </button>
 
       {groups.map((group, gi) => {
         if (group.length === 1) {
