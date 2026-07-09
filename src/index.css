@@ -1852,6 +1852,7 @@ html.light .half-line  { background: rgba(0,0,0,0.03); }
 /* Scrollbar thumbs */
 html.light ::-webkit-scrollbar-thumb { background: rgba(131,56,236,0.2); }
 html.light .map-zoom-btn { background: rgba(255,255,255,0.7); }
+html.light .map-toolbar  { background: rgba(248,244,255,0.88) !important; }
 
 /* Grid block text in light mode */
 html.light .grid-block-name { color: rgba(26,5,51,0.9); }

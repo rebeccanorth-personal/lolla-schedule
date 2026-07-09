@@ -36,17 +36,29 @@ export default function MapView() {
   function onTouchEnd() { lastDist.current = null }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-
-      {/* Zoom controls */}
-      <div style={{
-        flexShrink: 0,
+    <div
+      ref={containerRef}
+      style={{ height: '100%', overflow: 'auto' }}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Zoom controls — sticky so they stay visible while scrolling the map */}
+      <div className="map-toolbar" style={{
+        position: 'sticky',
+        top: 0,
+        left: 0,
+        zIndex: 10,
         display: 'flex',
         alignItems: 'center',
         gap: 8,
         padding: '6px 14px',
         borderBottom: '1px solid var(--border)',
-        background: 'rgba(8,1,15,0.6)',
+        background: 'rgba(8,1,15,0.85)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        width: '100vw',
+        boxSizing: 'border-box',
       }}>
         <span style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase', flex: 1 }}>
           Grant Park · Festival Map
@@ -55,21 +67,12 @@ export default function MapView() {
         <button onClick={zoomIn}  className="map-zoom-btn" disabled={width >= MAX_W}>+</button>
       </div>
 
-      {/* Scrollable map */}
-      <div
-        ref={containerRef}
-        style={{ flex: 1, overflow: 'auto' }}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-        <img
-          src="/map.jpg"
-          alt="Lollapalooza festival map"
-          style={{ display: 'block', width, maxWidth: 'none' }}
-          draggable={false}
-        />
-      </div>
+      <img
+        src="/map.jpg"
+        alt="Lollapalooza festival map"
+        style={{ display: 'block', width, maxWidth: 'none' }}
+        draggable={false}
+      />
     </div>
   )
 }

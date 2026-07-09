@@ -133,8 +133,9 @@ export default function LineupTimeline() {
               </div>
 
               {/* Stage columns */}
-              {STAGES.map(stage => {
+              {STAGES.map((stage, stageIdx) => {
                 const stagePerformers = dayPerformers.filter(p => p.stage === stage.id)
+                const isLast = stageIdx === STAGES.length - 1
                 return (
                   <div
                     key={stage.id}
@@ -144,7 +145,7 @@ export default function LineupTimeline() {
                       position: 'relative',
                       borderRight: '1px solid var(--border)',
                       zIndex: 2,
-                      scrollSnapAlign: 'start',
+                      scrollSnapAlign: isLast ? 'end' : 'start',
                     }}
                   >
                     {stagePerformers.map(performer => {
