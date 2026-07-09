@@ -1249,6 +1249,49 @@ body {
   letter-spacing: 0.06em;
 }
 
+/* Compact show card — used when multiple shows overlap in time */
+.crew-event-compact {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-left: 3px solid;
+  background: var(--surface);
+  cursor: pointer;
+  text-align: left;
+  transition: opacity 0.15s;
+}
+.crew-event-compact:active { opacity: 0.75; }
+.crew-compact-time {
+  font-size: 9px;
+  color: var(--muted);
+  margin-bottom: 3px;
+  letter-spacing: 0.02em;
+}
+.crew-compact-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+.crew-compact-stage {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+.crew-compact-who {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+  align-items: center;
+}
+
 /* Food items in crew view */
 .crew-food-item {
   display: flex;
@@ -1762,6 +1805,10 @@ html.light .crew-event-item {
 }
 html.light .crew-food-item {
   background: rgba(255,255,255,0.6);
+}
+html.light .crew-event-compact {
+  background: rgba(255,255,255,0.7);
+  border-color: var(--border);
 }
 
 /* Crew / theme buttons */

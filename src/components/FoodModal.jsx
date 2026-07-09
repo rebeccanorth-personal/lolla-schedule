@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 
-const QUICK_LABELS = ['Lunch', 'Dinner', 'Snack break', 'Food & drinks', 'Coffee run']
+const QUICK_LABELS = ['Lunch', 'Dinner', 'Snack break']
 
 export default function FoodModal() {
   const { state, dispatch } = useApp()
