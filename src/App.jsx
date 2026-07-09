@@ -5,6 +5,7 @@ import DaySelector   from './components/DaySelector'
 import Navigation    from './components/Navigation'
 import LineupTimeline from './components/LineupTimeline'
 import CrewView      from './components/FriendsView'
+import MapView       from './components/MapView'
 import AttendeeSheet from './components/AttendeeSheet'
 import FoodModal     from './components/FoodModal'
 import ProfileModal  from './components/ProfileModal'
@@ -25,6 +26,7 @@ function AppInner() {
       <div className="content-area">
         {state.activeTab === 'schedule' && <LineupTimeline />}
         {state.activeTab === 'friends'  && <CrewView />}
+        {state.activeTab === 'map'      && <MapView />}
       </div>
 
       <Navigation />

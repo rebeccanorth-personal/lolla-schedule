@@ -1742,6 +1742,25 @@ body {
 .text-yellow { color: var(--yellow); }
 .text-muted  { color: var(--muted); }
 
+/* ─── Map View ─────────────────────────────────────────────────────────────── */
+.map-zoom-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.map-zoom-btn:disabled { opacity: 0.3; cursor: default; }
+.map-zoom-btn:not(:disabled):active { opacity: 0.6; }
+
 /* ─── Light Mode ───────────────────────────────────────────────────────────── */
 html.light {
   --bg:          #f8f4ff;
@@ -1832,6 +1851,7 @@ html.light .half-line  { background: rgba(0,0,0,0.03); }
 
 /* Scrollbar thumbs */
 html.light ::-webkit-scrollbar-thumb { background: rgba(131,56,236,0.2); }
+html.light .map-zoom-btn { background: rgba(255,255,255,0.7); }
 
 /* Grid block text in light mode */
 html.light .grid-block-name { color: rgba(26,5,51,0.9); }
