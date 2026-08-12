@@ -11,11 +11,18 @@ import FoodModal     from './components/FoodModal'
 import ProfileModal  from './components/ProfileModal'
 
 function AppInner() {
-  const { state } = useApp()
+  const { state, dispatch } = useApp()
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', state.theme === 'light')
   }, [state.theme])
+
+  // First-time experience: no crew yet → show setup sheet immediately
+  useEffect(() => {
+    if (state.users.length === 0) {
+      dispatch({ type: 'OPEN_PROFILE' })
+    }
+  }, [])
 
   return (
     <div className="app-shell">

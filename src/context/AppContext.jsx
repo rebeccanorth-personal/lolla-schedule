@@ -3,25 +3,18 @@ import { PERFORMERS, overlaps, getPerformerById } from '../data/lineup'
 
 const AppContext = createContext(null)
 
-export const DEFAULT_USERS = [
-  { id: 'u2', name: 'Ilana',   color: '#8338EC', emoji: '⚡' },
-  { id: 'u4', name: 'Jamie',   color: '#FFBE0B', emoji: '🔥' },
-  { id: 'u3', name: 'Kara',    color: '#00C2FF', emoji: '🎵' },
-  { id: 'u1', name: 'Rebecca', color: '#FF006E', emoji: '💃' },
-]
-
-const ALL_USER_IDS = DEFAULT_USERS.map(u => u.id)
+const USER_COLORS = ['#FF006E', '#8338EC', '#00C2FF', '#FFBE0B', '#06D6A0', '#FB5607']
 
 // schedules[userId][performerId] = true
 // foodBreaks: [{ id, day, start, end, label }]
 const INITIAL_STATE = {
-  users: DEFAULT_USERS,
+  users: [],
   activeDay: 'Thursday',
   activeTab: 'schedule',
-  schedules: { u1: {}, u2: {}, u3: {}, u4: {} },
+  schedules: {},
   foodBreaks: [],
   theme: 'dark',
-  attendeeSheet: null,   // performerId when open
+  attendeeSheet: null,
   foodModal: false,
   profileModalOpen: false,
 }
@@ -31,15 +24,9 @@ function loadState() {
     const raw = localStorage.getItem('loonipalooza-state')
     if (!raw) return INITIAL_STATE
     const saved = JSON.parse(raw)
-    // Always use default emoji/color; only restore saved names
-    const users = DEFAULT_USERS.map(def => {
-      const savedUser = (saved.users || []).find(u => u.id === def.id)
-      return { ...def, name: savedUser?.name ?? def.name }
-    })
     return {
       ...INITIAL_STATE,
       ...saved,
-      users,
       attendeeSheet: null,
       foodModal: false,
       profileModalOpen: false,
@@ -56,6 +43,9 @@ function saveState(state) {
   } catch {}
 }
 
+function nextColor(users) {
+  return USER_COLORS[users.length % USER_COLORS.length]
+}
 
 function reducer(state, action) {
   switch (action.type) {
@@ -66,11 +56,31 @@ function reducer(state, action) {
     case 'SET_TAB':
       return { ...state, activeTab: action.tab }
 
-    case 'UPDATE_USER_NAME': {
+    case 'ADD_USER': {
+      const id = `u-${Date.now()}`
+      const color = nextColor(state.users)
+      const user = { id, name: action.name, emoji: action.emoji, color }
+      return {
+        ...state,
+        users: [...state.users, user],
+        schedules: { ...state.schedules, [id]: {} },
+      }
+    }
+
+    case 'UPDATE_USER': {
       const users = state.users.map(u =>
-        u.id === action.userId ? { ...u, name: action.name } : u
+        u.id === action.userId
+          ? { ...u, name: action.name ?? u.name, emoji: action.emoji ?? u.emoji }
+          : u
       )
       return { ...state, users }
+    }
+
+    case 'REMOVE_USER': {
+      const users = state.users.filter(u => u.id !== action.userId)
+      const schedules = { ...state.schedules }
+      delete schedules[action.userId]
+      return { ...state, users, schedules }
     }
 
     case 'OPEN_ATTENDEE_SHEET':
@@ -144,11 +154,8 @@ export function AppProvider({ children }) {
       .sort((a, b) => a.start.localeCompare(b.start))
   }
 
-  // For the crew view: everyone's schedule + food breaks, sorted by time
   function getCrewScheduleForDay(day) {
     const events = []
-
-    // Shows — collect all shows any person is attending
     const seen = new Set()
     state.users.forEach(u => {
       Object.keys(state.schedules[u.id] || {}).forEach(pid => {
@@ -161,12 +168,9 @@ export function AppProvider({ children }) {
         }
       })
     })
-
-    // Food breaks
     getFoodBreaksForDay(day).forEach(fb => {
       events.push({ type: 'food', foodBreak: fb })
     })
-
     return events.sort((a, b) => {
       const aTime = a.type === 'show' ? a.performer.start : a.foodBreak.start
       const bTime = b.type === 'show' ? b.performer.start : b.foodBreak.start
@@ -182,6 +186,8 @@ export function AppProvider({ children }) {
     })
   }
 
+  const allUserIds = state.users.map(u => u.id)
+
   return (
     <AppContext.Provider value={{
       state,
@@ -191,7 +197,7 @@ export function AppProvider({ children }) {
       getFoodBreaksForDay,
       getCrewScheduleForDay,
       hasConflict,
-      allUserIds: ALL_USER_IDS,
+      allUserIds,
     }}>
       {children}
     </AppContext.Provider>

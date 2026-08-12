@@ -13,10 +13,17 @@ export default function Header() {
       <div className="header-right">
         <button
           className="crew-btn"
+          onClick={() => dispatch({ type: 'OPEN_PROFILE' })}
+          title="Edit crew"
+        >
+          👯 Crew
+        </button>
+        <button
+          className="crew-btn"
           onClick={() => dispatch({ type: 'TOGGLE_THEME' })}
           title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
         >
-          {isLight ? '🌙 Dark' : '☀️ Light'}
+          {isLight ? '🌙' : '☀️'}
         </button>
       </div>
     </header>
